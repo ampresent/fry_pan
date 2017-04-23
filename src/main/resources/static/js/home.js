@@ -28,9 +28,13 @@ function getURLParameter(name) {
     return decodeURIComponent((new RegExp('[?|&]' + name + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) || [null, ''])[1].replace(/\+/g, '%20')) || null;
 }
 $('.file-entry').dblclick(function() {
-        window.location = "/file/access?file=" + getURLParameter("file") + "/" + $(this).text();
+    window.location = "/file/access?file=" + getURLParameter("file").replace(/\/*$/, "") + "/" + $(this).text();
 })
 
 $('.dir-entry').dblclick(function() {
-        window.location = "/disk/access?path=" + getURLParameter("path") + "/" + $(this).text();
+    window.location = "/disk/access?path=" + getURLParameter("path").replace(/\/*$/, "")  + "/" + $(this).text();
+})
+
+$('.backbtn').on("click", function() {
+    window.location = "/disk/access?path=" + getURLParameter("path").replace(/[^/]*\/*$/, "");
 })
