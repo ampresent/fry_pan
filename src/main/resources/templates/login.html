@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Login</title>
+    <script type="text/javascript" th:src="@{/js/jquery-3.2.0.min.js}" src="../static/js/jquery-3.2.0.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/bootstrap.min.js}" src="../static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" th:src="@{/js/login.js}" src="../static/js/login.js"></script>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"
+          href="../static/css/bootstrap.min.css" />
+</head>
+<body onload="$('#username')[0].focus();">
+<div class="container">
+    <div class="form row">
+        <form class="form-horizontal col-sm-offset-3 col-md-offset-3" id="login_form" th:action="@{/login}" method="post">
+            <h3 class="form-title">Login to your account</h3>
+            <div class="col-sm-9 col-md-9">
+                <div class="form-group">
+                    <i class="fa fa-user fa-lg"></i>
+                    <input class="form-control required" type="text" placeholder="Username" name="username" id="username" autofocus="autofocus" maxlength="20"/>
+                </div>
+                <div class="form-group">
+                    <i class="fa fa-lock fa-lg"></i>
+                    <input class="form-control required" type="password" placeholder="Password" name="password" maxlength="8"/>
+                </div>
+                <div class="form-group">
+                    <label class="checkbox">
+                        <input type="checkbox" name="remember" value="1"/> Remember me
+                    </label>
+                    <hr />
+                    <!--<a href="javascript:;" id="register_btn" class="">Create an account</a>-->
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-success pull-right" value="Login "/>
+                    <input type="text" class="btn btn-info pull-left" id="register_btn" value="Sign up"/>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="form row">
+        <form class="form-horizontal col-sm-offset-3 col-md-offset-3" id="register_form" hidden="hidden">
+            <h3 class="form-title">Login to your account</h3>
+            <div class="col-sm-9 col-md-9">
+                <div class="form-group">
+                    <i class="fa fa-user fa-lg"></i>
+                    <input class="form-control required" type="text" placeholder="Username" name="username" autofocus="autofocus"/>
+                </div>
+                <div class="form-group">
+                    <i class="fa fa-lock fa-lg"></i>
+                    <input class="form-control required" type="password" placeholder="Password" id="register_password" name="password"/>
+                </div>
+                <div class="form-group">
+                    <i class="fa fa-check fa-lg"></i>
+                    <input class="form-control required" type="password" placeholder="Re-type Your Password" name="rpassword"/>
+                </div>
+                <div class="form-group">
+                    <i class="fa fa-envelope fa-lg"></i>
+                    <input class="form-control eamil" type="text" placeholder="Email" name="email"/>
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-success pull-right" value="Sign Up "/>
+                    <input type="text" class="btn btn-info pull-left" id="back_btn" value="Back"/>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script type="text/javascript" th:src="@{/js/login.js}" src="../static/js/login.js"></script>
+</body>
+</html>
