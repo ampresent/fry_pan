@@ -108,74 +108,51 @@
     <div class="row clearfix">
         <div class="col-md-2 column">
             <div class="list-group">
-                <a href="/" class="list-group-item active">Files</a>
+                <a href="/" class="list-group-item">Files</a>
                 <a href="#" class="list-group-item">Pictures</a>
                 <a href="#" class="list-group-item">Shared</a>
-                <a href="/offline" class="list-group-item">Offline</a>
+                <a href="/offline" class="list-group-item active">Offline</a>
                 <a href="#" class="list-group-item">Trash</a>
             </div>
         </div>
         <div class="col-md-10 column">
             <div class="btn-group" style="margin-bottom:18px;">
-                <span class="btn btn-default btn btn backbtn">
-                    <span class="glyphicon glyphicon-arrow-left" aria-hidden="true"></span>
-                </span>
-                <span class="btn btn-info btn-file btn"> Upload
-                    <span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-                    <form action="/file/upload" id="upload-form" method="post" enctype="multipart/form-data">
-                        <input type="file" name="file" id="upload-file" />
-                        <input type="hidden" name="current" th:value='${#strings.defaultString(#httpServletRequest.getParameter("path"), "/")}' />
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                    </form>
-                </span>
-                <button class="btn btn-default btn popover-btn" type="button">New Folder</button>
-                    <div class="head hide">
-                        <span>New Folder</span>
-                        <a style="float-right" id="close-new-folder" >
-                            <i class="remove glyphicon glyphicon-remove-sign glyphicon-white pull-right close-btn" ></i>
-                        </a>
-                    </div>
-                    <div class="content hide">
-                        <form action="/folder/create" id="mkdir-form" method="POST">
-                            <div class="form-group">
-                                <input type="text" class="form-control" name="folder" placeholder="Folder ..." />
-                            </div>
-                            <button type="submit" class="btn btn-default btn-block" id="create-new-folder"> Create </button>
-                            <input type="hidden" name="current" th:value='${#strings.defaultString(#httpServletRequest.getParameter("path"), "/")}' />
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                        </form>
-                    </div>
-                    <button class="btn btn-default btn popover-btn" type="button">Offline Download</button>
-                    <div class="head hide">
-                        <span>Offline Download</span>
-                        <a style="float-right" id="close-offline" >
-                            <span class="icon remove glyphicon glyphicon-remove-sign glyphicon-white pull-right close-btn" ></span>
-                        </a>
-                    </div>
-                    <div class="content hide">
-                        <form action="/offline/download" id="offline-form" method="post">
-                            <div class="form-group">
-                                <input type="text" name="url" class="form-control" placeholder="URL ..." />
-                                <input type="hidden" name="current" th:value='${#strings.defaultString(#httpServletRequest.getParameter("path"), "/")}' />
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            </div>
-                            <button type="submit" class="btn btn-default btn-block" id="start-offline"> Download </button>
-                        </form>
-                    </div>
+                <a class="btn btn-default" href="/offline/clear">Clear</a>
+                <span class="btn btn-default" id="remove-tasks"> Remove selected</span>
             </div>
-
-            <p th:if="${#arrays.isEmpty(files)}">No file</p>
-
-            <div class="list-group" >
-                <a href="#" class="list-group-item dir-entry"
-                   th:each="file : ${files}"
-                   th:if="${file.isDirectory()}"
-                   th:inline="text">[[${file.getPath().getName()}]]<i class="glyphicon glyphicon-folder-close pull-right"></i></a>
-                <a href="#" class="list-group-item file-entry"
-                   th:each="file : ${files}"
-                   th:unless="${file.isDirectory()}"
-                   th:text="${file.getPath().getName()}">File2</a>
+            <div class="panel panel-default" id="offline-panel">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" id="input-csrf" />
+                <table class="table" th:each="task : ${tasks}">
+                    <tr class="panel-item">
+                        <td th:text="${task.getId()}" class="offline-id">1</td>
+                        <td th:text="${task.getPath()}">/wefw/eg/gwewefqwqwfqw/fqwfh/</td>
+                        <td th:text="${task.getUrl()}">http://weferjgjoweflknkjerfnwekfnwkejfwek</td>
+                    </tr>
+                </table>
             </div>
+            <ul class="pagination">
+                <li>
+                    <a href="#">Prev</a>
+                </li>
+                <li>
+                    <a href="#">1</a>
+                </li>
+                <li>
+                    <a href="#">2</a>
+                </li>
+                <li>
+                    <a href="#">3</a>
+                </li>
+                <li>
+                    <a href="#">4</a>
+                </li>
+                <li>
+                    <a href="#">5</a>
+                </li>
+                <li>
+                    <a href="#">Next</a>
+                </li>
+            </ul>
         </div>
     </div>
 </div>

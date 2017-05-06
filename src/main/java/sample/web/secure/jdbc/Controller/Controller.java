@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package sample.web.secure.jdbc;
+package sample.web.secure.jdbc.Controller;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.SecurityProperties;
@@ -35,75 +31,54 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
-import org.springframework.stereotype.Controller;
+import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.context.SecurityContextHolder;
-import sample.web.secure.jdbc.Utils;
+import sample.web.secure.jdbc.Service.Inter.FileUploadSer;
+import sample.web.secure.jdbc.Service.Inter.OfflineSer;
 
 @SpringBootApplication
-@Controller
-public class SampleWebSecureJdbcApplication extends WebMvcConfigurerAdapter {
+@org.springframework.stereotype.Controller
+public class Controller extends WebMvcConfigurerAdapter {
 
-    static private Utils util = new Utils();
+    private FileUploadSer fileUploadSer;
+    private OfflineSer offlineSer;
 
-    /*
-    @RequestMapping(value = "/folder/access", method = RequestMethod.POST)
-    public String enterFolder(@RequestParam("folder")String folder) {
-        return "home";
+    @Autowired
+    public Controller(FileUploadSer fileUploadSer, OfflineSer offlineSer) {
+        this.fileUploadSer = fileUploadSer;
+        this.offlineSer = offlineSer;
     }
-    */
-
-
 
     @RequestMapping(value = "/folder/create", method = RequestMethod.POST)
-    public String createFolder(@RequestParam("folder")String folder) {
+    public String createFolder(@RequestParam String current, @RequestParam String folder) {
         User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        String currentDir = "/";
-        String path = "hdfs://localhost:9000/user/" + user.getUsername() + currentDir + folder ;
-        util.mkdir(path);
+        String path = "/user/" + user.getUsername() + current + "/" + folder ;
+        fileUploadSer.mkdir(path);
         return "home";
     }
 
     @RequestMapping(value = "/file/upload", method = RequestMethod.POST)
-    public String uploadFile(@RequestParam("file")MultipartFile uploadFile) {
-        if (uploadFile.isEmpty()){
+    public String uploadFile(@RequestParam String current, @RequestParam MultipartFile file) {
+        if (file.isEmpty()){
             //return new ResponseEntity("Please select a file!", HttpStatus.OK);
             return "error";
         }
         User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Path path = new Path("/user/" + user.getUsername() + "/" + uploadFile.getOriginalFilename());
+        String path = "/user/" + user.getUsername() + current + "/" + file.getOriginalFilename();
         try {
-            org.apache.hadoop.conf.Configuration config = new org.apache.hadoop.conf.Configuration();
-            config.addResource(new Path("/usr/lib/hadoop/etc/hadoop/core-site.xml"));
-            config.addResource(new Path("/usr/lib/hadoop/etc/hadoop/hdfs-site.xml"));
-            config.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-            config.set("fs.file.impl",org.apache.hadoop.fs.LocalFileSystem.class.getName());
-
-            FileSystem fileSystem = FileSystem.get(config);
-            if (fileSystem.exists(path)) {
-                //return new ResponseEntity("File already exists!", HttpStatus.OK);
-                return "error";
-            }
-            InputStream is = uploadFile.getInputStream();
-            OutputStream os = fileSystem.create(path);
-            org.apache.commons.io.IOUtils.copy(is, os);
-            is.close();
-            os.close();
-            fileSystem.close();
+            fileUploadSer.putFile(path, file.getInputStream());
         } catch (IOException e) {
             //return new ResponseEntity("Failed to upload!", HttpStatus.OK);
             return "error";
@@ -117,9 +92,13 @@ public class SampleWebSecureJdbcApplication extends WebMvcConfigurerAdapter {
     @RequestMapping(value = "/file/access", method = RequestMethod.GET)
     public void download(@RequestParam(value="file", required = false) String file, HttpServletResponse response) {
         try {
+            User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            file = "/user/" + user.getUsername() + "/" + file;
             response.setContentType("application/octet-stream");
             response.setHeader("Content-Transfer-Encoding", "binary");
-            response.setHeader("Content-Disposition", "attachment; filename=\"" + util.getFile(file, response.getOutputStream()) + "\"");
+            String filename = FilenameUtils.getName(file);
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+            fileUploadSer.getFile(file, response.getOutputStream());
             response.flushBuffer();
         } catch (IOException ex){
             throw new RuntimeException("IOError writing file to output stream.");
@@ -143,63 +122,41 @@ public class SampleWebSecureJdbcApplication extends WebMvcConfigurerAdapter {
         }
         User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         model.put("username", user.getUsername());
-        FileStatus[] fss = util.listFiles("/user/" +user.getUsername() + "/" + path);
+        FileStatus[] fss = fileUploadSer.listFiles("/user/" +user.getUsername() + "/" + path);
         model.put("files", fss);
         return "home";
     }
 
-    /*
-    @RequestMapping("/offload", method=RequestMethod.POST)
-    public String startOffload(@RequestParam("url")String url) {
-        //OffloadScheduler.
+    @RequestMapping(value="/offline/download", method=RequestMethod.POST)
+    public String startOffline(@RequestParam String current, @RequestParam String url) {
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        offlineSer.append(user.getUsername(), current, url);
         return "home";
     }
-    */
+
+    @RequestMapping(value="/offline/pop", method=RequestMethod.POST)
+    public String popOffline(@RequestParam long[] ids) {
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        offlineSer.pop(user.getUsername(), ids);
+        return "offline";
+    }
+
+    @RequestMapping(value="/offline/clear", method=RequestMethod.GET)
+    public String clearOffline() {
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        offlineSer.clear(user.getUsername());
+        return "offline";
+    }
+
+    @RequestMapping(value="/offline", method=RequestMethod.GET)
+    public String offline(Map<String, Object> model) {
+        User user = (User)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        model.put("tasks", offlineSer.getAll(user.getUsername()));
+        return "offline";
+    }
 
 	@RequestMapping("/foo")
 	public String foo() {
 		throw new RuntimeException("Expected exception in controller");
 	}
-    @Override
-	public void addViewControllers(ViewControllerRegistry registry) {
-		registry.addViewController("/login").setViewName("login");
-	}
-
-	public static void main(String[] args) throws Exception {
-		new SpringApplicationBuilder(SampleWebSecureJdbcApplication.class).run(args);
-	}
-
-	@Configuration
-	@Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
-	protected static class ApplicationSecurity extends WebSecurityConfigurerAdapter {
-
-        @Bean
-        public HttpFirewall allowUrlEncodedSlashHttpFirewall() {
-            DefaultHttpFirewall firewall = new DefaultHttpFirewall();
-            firewall.setAllowUrlEncodedSlash(true);
-            return firewall;
-        }
-
-        @Override
-        public void configure(WebSecurity web) throws Exception {
-            web.httpFirewall(allowUrlEncodedSlashHttpFirewall());
-        }
-
-		@Autowired
-		private DataSource dataSource;
-
-		@Override
-		protected void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
-					.fullyAuthenticated().and().formLogin().loginPage("/login")
-					.failureUrl("/login?error").permitAll().and().logout().permitAll();
-		}
-
-		@Override
-		public void configure(AuthenticationManagerBuilder auth) throws Exception {
-			auth.jdbcAuthentication().dataSource(this.dataSource);
-		}
-
-	}
-
 }
