@@ -51,7 +51,11 @@ public class OfflineSerImpl implements OfflineSer {
                 HttpURLConnection httpcon = (HttpURLConnection) url.openConnection();
                 httpcon.addRequestProperty("User-Agent", "Mozilla/4.0");
                 InputStream is = httpcon.getInputStream();
-                fileUploadSer.putFile("/user/" + task.getUsername() + "/" + task.getPath() + "/" + FilenameUtils.getName(url.getPath()), is);
+                String filename = FilenameUtils.getName(url.getPath());
+                if (filename == "" || filename == "/")
+                    filename = "index.html";
+                fileUploadSer.putFile("/user/" + task.getUsername() + "/" + task.getPath() + "/" + filename, is);
+                is.close();
                 offlineTaskDao.delete(task);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -63,7 +67,7 @@ public class OfflineSerImpl implements OfflineSer {
         offlineTaskDao.save(new OfflineTask(username, path, url));
     }
 
-    public void pop(String username, long ids[]){
+    public void pop(String username, long ids[]) {
         for (long id: ids) {
             offlineTaskDao.deleteByUsernameAndId(username, id);
         }

@@ -24,6 +24,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -31,6 +32,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,14 +40,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import sample.web.secure.jdbc.Service.Inter.UserSer;
+import sample.web.secure.jdbc.Service.UserSerImpl;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.util.Map;
 
+@EnableAsync
 @EnableScheduling
 @SpringBootApplication
 public class App extends WebMvcConfigurerAdapter {
@@ -58,6 +64,14 @@ public class App extends WebMvcConfigurerAdapter {
 	public static void main(String[] args) throws Exception {
 		new SpringApplicationBuilder(App.class).run(args);
 	}
+
+	/*
+	@Override
+	public void addResourceHandlers(final ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/resources/fbthumb/**")
+				.addResourceLocations("/resources/static/image/fbthumb");
+	}
+	*/
 
 	@Configuration
 	@Order(SecurityProperties.ACCESS_OVERRIDE_ORDER)
@@ -80,8 +94,10 @@ public class App extends WebMvcConfigurerAdapter {
 
 		@Override
 		protected void configure(HttpSecurity http) throws Exception {
-			http.authorizeRequests().antMatchers("/css/**").permitAll().anyRequest()
-					.fullyAuthenticated().and().formLogin().loginPage("/login")
+			http.authorizeRequests().antMatchers("/css/**").permitAll()
+					.antMatchers("/fonts/**").permitAll()
+					.antMatchers("/register").permitAll()
+					.anyRequest().fullyAuthenticated().and().formLogin().loginPage("/login")
 					.failureUrl("/login?error").permitAll().and().logout().permitAll();
 		}
 
@@ -89,6 +105,15 @@ public class App extends WebMvcConfigurerAdapter {
 		public void configure(AuthenticationManagerBuilder auth) throws Exception {
 			auth.jdbcAuthentication().dataSource(this.dataSource);
 		}
+
+		/*
+		@Autowired
+		public void configureGlobal(AuthenticationManagerBuilder auth,
+									UserSer userSer) throws Exception {
+
+			auth.userDetailsService(userSer);
+		}
+		*/
 
 	}
 

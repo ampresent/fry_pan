@@ -9,9 +9,9 @@ import java.util.List;
  * Created by wuyihao on 4/29/17.
  */
 public interface OfflineSer {
-    public void append(String username, String path, String url);
-    public void download();
-    public void pop(String username, long [] ids);
-    public void clear(String username);
-    public List<OfflineTask> getAll(String username);
+    void append(String username, String path, String url);
+    void download();
+    void pop(String username, long [] ids);
+    void clear(String username);
+    List<OfflineTask> getAll(String username);
 }

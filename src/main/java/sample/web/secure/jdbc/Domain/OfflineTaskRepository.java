@@ -10,9 +10,9 @@ import java.util.List;
  */
 @Transactional
 public interface OfflineTaskRepository extends CrudRepository<OfflineTask, Long>{
-    public List<OfflineTask> findByUsername(String username);
-    public void deleteByUsername(String username);
-    public void deleteByUsernameAndId(String username, Long id);
+    List<OfflineTask> findByUsername(String username);
+    void deleteByUsername(String username);
+    void deleteByUsernameAndId(String username, Long id);
 
 
 

@@ -55,6 +55,4 @@ $(function() {
         $("#register_form").css("display", "none");
         $("#login_form").css("display", "block");
     });
-
-
 });
